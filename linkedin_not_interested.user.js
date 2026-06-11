@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         not_interested — a cleaner LinkedIn feed
 // @namespace    https://abernier.dev/
-// @version      1.11.0
+// @version      1.11.1
 // @homepageURL  https://claude.ai/chat/4f8781b9-8f0f-44fd-aac5-0d25ba42b682
 // @supportURL   https://claude.ai/chat/4f8781b9-8f0f-44fd-aac5-0d25ba42b682
 // @description  Permanently hides what LinkedIn won't let you mute for good: "Suggested"/"Promoted" posts, LinkedIn Learning course cards, social-proof reposts ("X likes this"), and clutter modules (Add to your feed, puzzles, News, jobs, videos, Premium upsells). LinkedIn's built-in "I don't want to see this" action (see https://www.linkedin.com/help/linkedin/answer/a523209) doesn't stick — this keeps the feed clean as you scroll. Works with English and French UI locales.
@@ -18,11 +18,11 @@
   // ───────────── Presets ─────────────
   // Monotonic escalation: light ⊂ balanced ⊂ aggressive ⊂ nuclear
   //   light       – ads, promos, "Suggested"/Learning posts, Premium upsells.
-  //   balanced    – light + social-proof reposts, "Add to your feed", News, puzzles.
-  //   aggressive  – hide ALL posts & modules listed. Messaging bubble kept. (default)
+  //   balanced    – light + social-proof reposts, "Add to your feed", News, puzzles. (default)
+  //   aggressive  – hide ALL posts & modules listed. Messaging bubble kept.
   //   nuclear     – aggressive + removes the bottom-right Messaging bubble.
   //   custom      – ignore presets, use the CUSTOM object below.
-  const PRESET = "aggressive"; // "light" | "balanced" | "aggressive" | "nuclear" | "custom"
+  const PRESET = "balanced"; // "light" | "balanced" | "aggressive" | "nuclear" | "custom"
   const DEBUG = true;          // log to the console
 
   // ───────────── Reveal mode (the big anti-flicker switch) ─────────────
