@@ -4,26 +4,36 @@
 
 Language: conduct the ENTIRE conversation — questions, checkbox options, instructions — in the user's language, not necessarily English. You won't know their language on the first message (it is a prefilled prompt): if you have no other signal, ask the very first question in English with a one-line note telling them they can reply in any language, then switch to their language for everything else as soon as they write.
 
-First, ask the user what they want to hide. STRONGLY prefer your interface's native interactive question UI with real multi-select checkboxes (an AskUserQuestion-style tool) over plain text. If that UI limits how many options fit in one question, split into the 3 grouped multi-select questions below (each fits in 4 options). Only if no interactive question UI exists at all, fall back to one flat markdown checklist the user replies to in text. Mark the "balanced"-preset options as recommended:
+First, ask the user how much they want hidden, with ONE single-select question. STRONGLY prefer your interface's native interactive question UI (an AskUserQuestion-style tool) over plain text; only fall back to a text list if no such UI exists. Do NOT ask anything else at this stage. The 4 options:
 
-Feed posts:
-- Suggested / "From your activity" posts (recommended)
-- Promoted / sponsored posts (recommended)
-- LinkedIn Learning course posts (recommended)
-- Social-proof reposts: "X likes this", "Y commented on…" (recommended)
+- **light** — ads & junk posts only: Suggested / "From your activity" posts, Promoted posts, LinkedIn Learning posts, Premium upsells
+- **balanced** — light + social-proof reposts ("X likes this"), "Add to your feed", LinkedIn News, games/puzzles (recommended — the script's default)
+- **aggressive** — everything: balanced + job recommendations + "Videos for you"
+- **custom** — pick item by item
 
-Feed & sidebar modules:
-- "Add to your feed" follow suggestions (recommended)
-- Games / puzzles (recommended)
-- LinkedIn News (recommended)
-- Job recommendations
+Follow-ups, only when triggered:
 
-Extras:
-- Premium upsells & ads (recommended)
-- "Videos for you"
-- Bottom-right Messaging bubble
+- If **aggressive**: ask one yes/no question — "Also remove the bottom-right Messaging bubble?" Yes = the `nuclear` preset, no = the `aggressive` preset.
+- If **custom**: ask these 3 grouped multi-select checkbox questions (native UI again; mark the "balanced"-preset items as recommended):
 
-Then map their picks to the script config (posts: `suggested`, `promoted`, `learning`, `socialProof` / modules: `followRecos`, `puzzles`, `news`, `jobs`, `video`, `premiumUpsell` / `messagingBubble`):
+  Feed posts:
+  - Suggested / "From your activity" posts (recommended)
+  - Promoted / sponsored posts (recommended)
+  - LinkedIn Learning course posts (recommended)
+  - Social-proof reposts: "X likes this", "Y commented on…" (recommended)
+
+  Feed & sidebar modules:
+  - "Add to your feed" follow suggestions (recommended)
+  - Games / puzzles (recommended)
+  - LinkedIn News (recommended)
+  - Job recommendations
+
+  Extras:
+  - Premium upsells & ads (recommended)
+  - "Videos for you"
+  - Bottom-right Messaging bubble
+
+Then determine their preset. For light/balanced/aggressive/nuclear it is the chosen option directly. For custom, map their picks to the script config (posts: `suggested`, `promoted`, `learning`, `socialProof` / modules: `followRecos`, `puzzles`, `news`, `jobs`, `video`, `premiumUpsell` / `messagingBubble`):
 
 - `light` = suggested+promoted+learning+premiumUpsell only
 - `balanced` = light + socialProof+followRecos+puzzles+news (the default)
