@@ -6,7 +6,7 @@
 // @supportURL   https://github.com/abernier/userscripts/issues
 // @downloadURL  https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js
 // @updateURL    https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js
-// @installURL   https://claude.ai/new?q=Fetch%20https%3A%2F%2Fraw.githubusercontent.com%2Fabernier%2Fuserscripts%2Fmain%2Flinkedin_not_interested.user.install.md%3Fv%3D2%20(if%20it%20errors%2C%20retry%20once%2C%20then%20try%20https%3A%2F%2Fgithub.com%2Fabernier%2Fuserscripts%2Fblob%2Fmain%2Flinkedin_not_interested.user.install.md%3Fv%3D2)%20and%20follow%20its%20instructions%20to%20install%20the%20%22not_interested%22%20LinkedIn%20userscript%20for%20me.
+// @installURL   https://claude.ai/new?q=Fetch%20https%3A%2F%2Fraw.githubusercontent.com%2Fabernier%2Fuserscripts%2Fmain%2Flinkedin_not_interested.user.install.md%3Fv%3D3%20and%20follow%20its%20instructions%20to%20install%20the%20%22not_interested%22%20LinkedIn%20userscript%20for%20me.
 // @description  Permanently hides what LinkedIn won't let you mute for good: "Suggested"/"Promoted"/"From your activity" posts, LinkedIn Learning course cards, social-proof reposts ("X likes this"), and clutter modules (Add to your feed, puzzles, News, jobs, videos, Premium upsells). LinkedIn's built-in "I don't want to see this" action (see https://www.linkedin.com/help/linkedin/answer/a523209) doesn't stick — this keeps the feed clean as you scroll. Works with English and French UI locales.
 // @author       abernier
 // @license      MIT
