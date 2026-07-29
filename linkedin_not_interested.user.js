@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         not_interested — a cleaner LinkedIn feed
 // @namespace    https://abernier.dev/
-// @version      1.14.0
+// @version      1.14.1
 // @homepageURL  https://github.com/abernier/userscripts
 // @supportURL   https://github.com/abernier/userscripts/issues
 // @downloadURL  https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js
@@ -55,6 +55,21 @@
   // ───────────── Tampermonkey menu (visible on linkedin.com tabs) ─────────────
   // Live checkboxes: each click flips the flag, re-applies it to the page
   // (applyConfig, no reload), and rebuilds the menu so the ☑/☐ labels update.
+  // Labels show the real LinkedIn feed phrases (English UI) each filter
+  // matches — more telling than the internal config keys.
+  const MENU_LABELS = {
+    suggested: "“Suggested” / “From your activity”",
+    promoted: "“Promoted”",
+    learning: "“LinkedIn Learning” courses",
+    socialProof: "“X likes this” reposts",
+    followRecos: "“Add to your feed”",
+    puzzles: "“Today’s puzzles”",
+    news: "“LinkedIn News”",
+    jobs: "“Jobs recommended for you”",
+    video: "“Videos for you”",
+    premiumUpsell: "“Try Premium” upsells",
+    messagingBubble: "Messaging bubble",
+  };
   let menuIds = [];
   function buildMenu() {
     for (const id of menuIds) GM_unregisterMenuCommand(id);
@@ -69,8 +84,8 @@
       }));
     for (const [group, label] of [["posts", "post"], ["modules", "module"]])
       for (const key of Object.keys(CONFIG[group]))
-        entry(`${label}: ${key}`, () => CONFIG[group][key], () => (CONFIG[group][key] = !CONFIG[group][key]));
-    entry("messaging bubble", () => CONFIG.messagingBubble, () => (CONFIG.messagingBubble = !CONFIG.messagingBubble));
+        entry(`${label}: ${MENU_LABELS[key] || key}`, () => CONFIG[group][key], () => (CONFIG[group][key] = !CONFIG[group][key]));
+    entry(MENU_LABELS.messagingBubble, () => CONFIG.messagingBubble, () => (CONFIG.messagingBubble = !CONFIG.messagingBubble));
   }
   buildMenu();
 
