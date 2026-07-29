@@ -4,17 +4,22 @@
 
 Language: conduct the ENTIRE conversation — questions, checkbox options, instructions — in the user's language, not necessarily English. You won't know their language on the first message (it is a prefilled prompt): if you have no other signal, ask the very first question in English with a one-line note telling them they can reply in any language, then switch to their language for everything else as soon as they write.
 
-First, ask the user what they want to hide with ONE single multi-select checkbox question (do not split it into several questions; use group labels inside the list if your UI supports them, otherwise keep it flat). Options, with the "balanced"-preset ones marked (recommended):
+First, ask the user what they want to hide. STRONGLY prefer your interface's native interactive question UI with real multi-select checkboxes (an AskUserQuestion-style tool) over plain text. If that UI limits how many options fit in one question, split into the 3 grouped multi-select questions below (each fits in 4 options). Only if no interactive question UI exists at all, fall back to one flat markdown checklist the user replies to in text. Mark the "balanced"-preset options as recommended:
 
+Feed posts:
 - Suggested / "From your activity" posts (recommended)
 - Promoted / sponsored posts (recommended)
 - LinkedIn Learning course posts (recommended)
 - Social-proof reposts: "X likes this", "Y commented on…" (recommended)
+
+Feed & sidebar modules:
 - "Add to your feed" follow suggestions (recommended)
 - Games / puzzles (recommended)
 - LinkedIn News (recommended)
-- Premium upsells & ads (recommended)
 - Job recommendations
+
+Extras:
+- Premium upsells & ads (recommended)
 - "Videos for you"
 - Bottom-right Messaging bubble
 
