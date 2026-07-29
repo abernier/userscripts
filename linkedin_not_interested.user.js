@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         not_interested — a cleaner LinkedIn feed
 // @namespace    https://abernier.dev/
-// @version      1.14.2
+// @version      1.14.3
 // @homepageURL  https://github.com/abernier/userscripts
 // @supportURL   https://github.com/abernier/userscripts/issues
 // @downloadURL  https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js
@@ -76,7 +76,7 @@
     menuIds = [];
     const box = (on) => (on ? "☑" : "☐");
     const entry = (label, get, flip) =>
-      menuIds.push(GM_registerMenuCommand(`${box(get())} ${label}`, () => {
+      menuIds.push(GM_registerMenuCommand(`${box(get())} hide ${label}`, () => {
         flip();
         GM_setValue("config", { posts: CONFIG.posts, modules: CONFIG.modules, messagingBubble: CONFIG.messagingBubble });
         applyConfig();
