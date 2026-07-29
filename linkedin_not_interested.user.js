@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         not_interested — a cleaner LinkedIn feed
 // @namespace    https://abernier.dev/
-// @version      1.14.1
+// @version      1.14.2
 // @homepageURL  https://github.com/abernier/userscripts
 // @supportURL   https://github.com/abernier/userscripts/issues
 // @downloadURL  https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js
@@ -82,9 +82,9 @@
         applyConfig();
         buildMenu();
       }));
-    for (const [group, label] of [["posts", "post"], ["modules", "module"]])
+    for (const group of ["posts", "modules"])
       for (const key of Object.keys(CONFIG[group]))
-        entry(`${label}: ${MENU_LABELS[key] || key}`, () => CONFIG[group][key], () => (CONFIG[group][key] = !CONFIG[group][key]));
+        entry(MENU_LABELS[key] || key, () => CONFIG[group][key], () => (CONFIG[group][key] = !CONFIG[group][key]));
     entry(MENU_LABELS.messagingBubble, () => CONFIG.messagingBubble, () => (CONFIG.messagingBubble = !CONFIG.messagingBubble));
   }
   buildMenu();
