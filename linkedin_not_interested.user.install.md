@@ -9,6 +9,6 @@ Do NOT ask the user any preference questions. Send ONE SHORT message — a numbe
 1. Install: https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js → Tampermonkey's install screen opens, click **Install**. (Raw code shown as plain text = Tampermonkey missing/disabled — see 2.)
 2. No Tampermonkey? https://www.tampermonkey.net/ (Download section, stable version — never hardcode a store URL). Chrome: enable "Allow User Scripts" (or Developer mode) in `chrome://extensions`.
 3. Reload https://www.linkedin.com/feed/.
-4. Optional tuning: defaults to `balanced`; Tampermonkey icon on a LinkedIn tab → "not_interested" → `light` / `aggressive` / `nuclear` or `⚙ configure custom (JSON)…`.
+4. Optional tuning: Tampermonkey icon on a LinkedIn tab → "not_interested" → flat ☑/☐ checkbox list (one per hidden post type / module + messaging bubble); click an entry to toggle it, applied live (no reload).
 
 Then stay available for troubleshooting.

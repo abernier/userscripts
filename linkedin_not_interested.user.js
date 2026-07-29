@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         not_interested — a cleaner LinkedIn feed
 // @namespace    https://abernier.dev/
-// @version      1.13.0
+// @version      1.14.0
 // @homepageURL  https://github.com/abernier/userscripts
 // @supportURL   https://github.com/abernier/userscripts/issues
 // @downloadURL  https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js
@@ -16,24 +16,22 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_registerMenuCommand
+// @grant        GM_unregisterMenuCommand
 // ==/UserScript==
 
 (() => {
   "use strict";
 
-  // ───────────── Presets ─────────────
-  // Monotonic escalation: light ⊂ balanced ⊂ aggressive ⊂ nuclear
-  //   light       – ads, promos, "Suggested"/Learning posts, Premium upsells.
-  //   balanced    – light + social-proof reposts, "Add to your feed", News, puzzles. (default)
-  //   aggressive  – hide ALL posts & modules listed. Messaging bubble kept.
-  //   nuclear     – aggressive + removes the bottom-right Messaging bubble.
-  //   custom      – ignore presets, use the stored custom object (see menu).
-  // The active preset lives in Tampermonkey storage, NOT in this file: pick it
-  // from the Tampermonkey toolbar menu while on linkedin.com. Edits to this
-  // file would be wiped by the next @updateURL auto-update.
-  const PRESET_NAMES = ["light", "balanced", "aggressive", "nuclear", "custom"];
-  const storedPreset = GM_getValue("preset", "balanced");
-  const PRESET = PRESET_NAMES.includes(storedPreset) ? storedPreset : "balanced";
+  // ───────────── Config ─────────────
+  // One flat checkbox per hideable thing, directly in the Tampermonkey toolbar
+  // menu (visible while on linkedin.com): click an entry to toggle it — applied
+  // live, no page reload. Config lives in Tampermonkey storage, NOT in this
+  // file: edits here would be wiped by the next @updateURL auto-update.
+  const DEFAULTS = {
+    posts:   { suggested: true, promoted: true, learning: true, socialProof: true },
+    modules: { followRecos: true, puzzles: true, news: true, jobs: false, video: false, premiumUpsell: true },
+    messagingBubble: false,
+  };
   const DEBUG = true;          // log to the console
 
   // ───────────── Reveal mode (the big anti-flicker switch) ─────────────
@@ -45,65 +43,36 @@
   const REVEAL_MODE = true;
   const REVEAL_FAILOPEN_MS = 1500;
 
-  const CUSTOM_DEFAULT = {
-    posts:   { suggested: true, promoted: true, learning: true, socialProof: true },
-    modules: { followRecos: true, puzzles: true, news: true, jobs: true, video: true, premiumUpsell: true },
-    messagingBubble: false,
+  const stored = GM_getValue("config", null);
+  // Stored config merged over defaults, so a partial/stale object never breaks.
+  const CONFIG = {
+    posts:   { ...DEFAULTS.posts, ...(stored?.posts || {}) },
+    modules: { ...DEFAULTS.modules, ...(stored?.modules || {}) },
+    messagingBubble: !!(stored?.messagingBubble ?? DEFAULTS.messagingBubble),
+    debug: DEBUG,
   };
-  // Stored custom config merged over defaults, so a partial/stale object never breaks.
-  const CUSTOM = (() => {
-    const s = GM_getValue("custom", null);
-    if (!s || typeof s !== "object") return CUSTOM_DEFAULT;
-    return {
-      posts:   { ...CUSTOM_DEFAULT.posts, ...(s.posts || {}) },
-      modules: { ...CUSTOM_DEFAULT.modules, ...(s.modules || {}) },
-      messagingBubble: !!s.messagingBubble,
-    };
-  })();
-
-  const PRESETS = {
-    light: {
-      posts:   { suggested: true, promoted: true, learning: true, socialProof: false },
-      modules: { followRecos: false, puzzles: false, news: false, jobs: false, video: false, premiumUpsell: true },
-      messagingBubble: false,
-    },
-    balanced: {
-      posts:   { suggested: true, promoted: true, learning: true, socialProof: true },
-      modules: { followRecos: true, puzzles: true, news: true, jobs: false, video: false, premiumUpsell: true },
-      messagingBubble: false,
-    },
-    aggressive: {
-      posts:   { suggested: true, promoted: true, learning: true, socialProof: true },
-      modules: { followRecos: true, puzzles: true, news: true, jobs: true, video: true, premiumUpsell: true },
-      messagingBubble: false,
-    },
-    nuclear: {
-      posts:   { suggested: true, promoted: true, learning: true, socialProof: true },
-      modules: { followRecos: true, puzzles: true, news: true, jobs: true, video: true, premiumUpsell: true },
-      messagingBubble: true,
-    },
-    custom: CUSTOM,
-  };
-
-  const CONFIG = { ...(PRESETS[PRESET] || PRESETS.aggressive), debug: DEBUG };
 
   // ───────────── Tampermonkey menu (visible on linkedin.com tabs) ─────────────
-  for (const name of PRESET_NAMES)
-    GM_registerMenuCommand(`${name === PRESET ? "✓" : "•"} preset: ${name}`, () => {
-      GM_setValue("preset", name);
-      location.reload();
-    });
-  GM_registerMenuCommand("⚙ configure custom (JSON)…", () => {
-    const input = prompt("not_interested — custom config (JSON):", JSON.stringify(CUSTOM));
-    if (input == null) return;
-    try {
-      GM_setValue("custom", JSON.parse(input));
-      GM_setValue("preset", "custom");
-      location.reload();
-    } catch (e) {
-      alert(`Invalid JSON: ${e.message}`);
-    }
-  });
+  // Live checkboxes: each click flips the flag, re-applies it to the page
+  // (applyConfig, no reload), and rebuilds the menu so the ☑/☐ labels update.
+  let menuIds = [];
+  function buildMenu() {
+    for (const id of menuIds) GM_unregisterMenuCommand(id);
+    menuIds = [];
+    const box = (on) => (on ? "☑" : "☐");
+    const entry = (label, get, flip) =>
+      menuIds.push(GM_registerMenuCommand(`${box(get())} ${label}`, () => {
+        flip();
+        GM_setValue("config", { posts: CONFIG.posts, modules: CONFIG.modules, messagingBubble: CONFIG.messagingBubble });
+        applyConfig();
+        buildMenu();
+      }));
+    for (const [group, label] of [["posts", "post"], ["modules", "module"]])
+      for (const key of Object.keys(CONFIG[group]))
+        entry(`${label}: ${key}`, () => CONFIG[group][key], () => (CONFIG[group][key] = !CONFIG[group][key]));
+    entry("messaging bubble", () => CONFIG.messagingBubble, () => (CONFIG.messagingBubble = !CONFIG.messagingBubble));
+  }
+  buildMenu();
 
   // ───────────── Post detection (exact header text) ─────────────
   const POST_RES = [
@@ -127,14 +96,17 @@
   const ITEM_SELECTOR =
     '[role="listitem"], div[data-id^="urn:li:activity"], .feed-shared-update-v2';
   const ATTR = "data-not-interested"; // "always hide" (junk + modules), both modes
-  const OK = "data-ni-ok";            // "vetted clean, reveal" (reveal mode only)
+  const OK = "data-ni-ok";            // reveal (reveal mode only): "post" = vetted clean post,
+                                      // "chrome" = non-post feed furniture (composer, sort bar,
+                                      // "New posts" pill, infinite-scroll sentinel…)
   const VERSION = (typeof GM_info !== "undefined" && GM_info?.script?.version) || "?";
   let hiddenCount = 0;
   let revealedCount = 0;
 
   GM_addStyle(`[${ATTR}]{display:none !important;}`);
-  if (CONFIG.messagingBubble)
-    GM_addStyle(`#msg-overlay,.msg-overlay-list-bubble,aside[aria-label*="essag"]{display:none !important;}`);
+  // Always injected; the menu checkbox toggles it live via .disabled.
+  const msgStyle = GM_addStyle(`#msg-overlay,.msg-overlay-list-bubble,aside[aria-label*="essag"]{display:none !important;}`);
+  if (msgStyle) msgStyle.disabled = !CONFIG.messagingBubble;
 
   if (REVEAL_MODE) {
     // Hide feed slots until vetted — scoped to the feed list inside <main> only,
@@ -163,8 +135,10 @@
       console.log(`%c[not_interested] hid: ${what} (${hiddenCount})`, "color:#888");
   };
 
-  const hide = (el, what) => {
-    feedSlotOf(el).setAttribute(ATTR, "");
+  const hide = (el, key, what = key) => {
+    const slot = feedSlotOf(el);
+    slot.removeAttribute(OK);
+    slot.setAttribute(ATTR, key); // value = the config key that hid it, so a live toggle-off can un-hide it
     log(what);
   };
 
@@ -213,7 +187,7 @@
 
     if (!REVEAL_MODE) {
       const why = isJunkPost(item);
-      if (why) hide(item, `post ${why}`);
+      if (why) hide(item, why, `post ${why}`);
       return;
     }
 
@@ -222,16 +196,20 @@
     // and never mark it both revealed and hidden. Evaluating the full slot makes
     // the decision independent of which inner item triggered processing.
     const slot = feedSlotOf(item);
-    if (slot.hasAttribute(OK) || slot.hasAttribute(ATTR)) return; // already decided
+    if (slot.hasAttribute(ATTR) || slot.getAttribute(OK) === "post") return; // already decided
+    // A slot revealed as "chrome" that has since received a real post is re-vetted
+    // here — synchronously, before paint — so junk still never flashes.
     const junk = isJunkPost(slot);
-    if (junk) { hide(slot, `post ${junk}`); return; }
+    if (junk) { hide(slot, junk, `post ${junk}`); return; }
     const mod = moduleHeadingIn(slot);
-    if (mod) { hide(slot, `in-feed ${mod}`); return; }
+    if (mod) { hide(slot, mod, `in-feed ${mod}`); return; }
     if (looksLikePost(slot)) {
-      slot.setAttribute(OK, "");
+      slot.setAttribute(OK, "post");
       revealedCount++;
       if (CONFIG.debug && revealedCount <= 3)
         console.log(`%c[not_interested] revealed a post (${revealedCount})`, "color:#0a8a00");
+    } else if (slot.getAttribute(OK) === "chrome") {
+      slot.removeAttribute(OK); // holds a post now, but not vetted yet → hidden until clean
     }
     // else: pending (content not loaded yet) — stays hidden until next scan / fail-open
   }
@@ -283,12 +261,49 @@
       const target = li || (m.mode === "card" ? cardOf(m) : inlineOf(m.el));
       if (!target) continue;
       if (target.querySelectorAll('[role="listitem"]').length > 2) continue;
-      hide(target, `module ${m.key} ("${m.t.slice(0, 30)}")`);
+      hide(target, m.key, `module ${m.key} ("${m.t.slice(0, 30)}")`);
+    }
+  }
+
+  // ───────────── Chrome slots (reveal mode) ─────────────
+  // The feed list also holds non-post furniture: the "Start a post" composer,
+  // the sort-by bar, the "New posts" pill — and the empty sentinel <div>
+  // LinkedIn observes to trigger infinite scroll. Blanket-hiding those (≤1.13)
+  // killed lazy-loading: the sentinel was display:none, never intersected the
+  // viewport, and the feed stopped dead after the first batch (no loader, no
+  // more posts). Reveal any list child with no feed item inside; if a post
+  // lands in it later, handleItem re-vets it pre-paint.
+  function scanChrome() {
+    for (const list of document.querySelectorAll('main [role="list"]')) {
+      const inRevealedSlot = !!list.parentElement?.closest(`[${OK}]`); // nested list (carousel) of a vetted post
+      for (const slot of list.children) {
+        if (slot.hasAttribute(OK) || slot.hasAttribute(ATTR)) continue;
+        if (inRevealedSlot || !(slot.matches(ITEM_SELECTOR) || slot.querySelector(ITEM_SELECTOR)))
+          slot.setAttribute(OK, "chrome");
+      }
     }
   }
 
   // ───────────── Loop ─────────────
-  function scan() { scanPosts(); scanModules(); }
+  function scan() { scanPosts(); scanModules(); if (REVEAL_MODE) scanChrome(); }
+
+  // Apply a config change to the already-rendered page (no reload): un-hide
+  // what the now-disabled filters had hidden (they get re-vetted → revealed),
+  // re-check revealed posts against newly enabled filters, then rescan.
+  function applyConfig() {
+    if (msgStyle) msgStyle.disabled = !CONFIG.messagingBubble;
+    for (const el of document.querySelectorAll(`[${ATTR}]`)) {
+      const key = el.getAttribute(ATTR);
+      if ((CONFIG.posts[key] ?? CONFIG.modules[key]) === false) el.removeAttribute(ATTR);
+    }
+    for (const slot of document.querySelectorAll(`[${OK}="post"]`)) {
+      const junk = isJunkPost(slot);
+      if (junk) { hide(slot, junk, `post ${junk}`); continue; }
+      const mod = moduleHeadingIn(slot);
+      if (mod) hide(slot, mod, `in-feed ${mod}`);
+    }
+    scheduleScan();
+  }
 
   // Synchronous, pre-paint handling of freshly inserted feed items.
   function processNode(node) {
