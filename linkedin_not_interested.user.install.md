@@ -40,10 +40,15 @@ Then determine their preset. For light/balanced/aggressive/nuclear it is the cho
 - `aggressive` = everything except the Messaging bubble
 - `nuclear` = everything
 
-If their picks exactly match a preset, that is their preset; otherwise their preset is `"custom"` and prepare the `CUSTOM` object with their picks.
+If their picks exactly match a preset, that is their preset; otherwise their preset is `custom` and prepare the custom JSON with their picks (full shape below, every key present):
+
+```json
+{"posts":{"suggested":true,"promoted":true,"learning":true,"socialProof":true},"modules":{"followRecos":true,"puzzles":true,"news":true,"jobs":false,"video":false,"premiumUpsell":true},"messagingBubble":false}
+```
 
 Then guide them step by step, waiting for them at each step:
 
 1. Give them the install link https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js and, in the SAME message, always include this note: the script requires the Tampermonkey extension — official download page https://www.tampermonkey.net/ (its Download section offers the right store link per browser; prefer stable Tampermonkey over Legacy/BETA; do not hardcode a store URL yourself), and on Chrome "Allow User Scripts" (or Developer mode) must be enabled for Tampermonkey in `chrome://extensions` or scripts won't run. Opening the install link should show Tampermonkey's install screen — click Install. If the browser shows raw code as plain text instead, Tampermonkey is missing or user scripts are disabled — install/enable it first, then reopen the link.
-2. Unless their preset is `"balanced"` (nothing to change), have them open the script in the Tampermonkey editor and change the line `const PRESET = "balanced"` to their preset; if `"custom"`, also give them the exact `CUSTOM` object to paste over the existing one.
-3. Have them reload https://www.linkedin.com/feed/ and confirm the feed matches what they chose.
+2. Have them open https://www.linkedin.com/feed/ — the default `balanced` preset is active immediately.
+3. Unless their preset is `balanced` (nothing to do), have them switch preset from the Tampermonkey menu while ON the LinkedIn tab: click the Tampermonkey toolbar icon → under "not_interested", click `preset: <theirs>` (the page reloads by itself). If their preset is `custom`: click `⚙ configure custom (JSON)…` instead and paste the custom JSON you prepared from their picks. Never have them edit the script source — source edits are wiped by auto-updates; the menu choice is persisted.
+4. Have them confirm the feed matches what they chose.

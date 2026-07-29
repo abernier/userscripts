@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         not_interested — a cleaner LinkedIn feed
 // @namespace    https://abernier.dev/
-// @version      1.12.0
+// @version      1.13.0
 // @homepageURL  https://github.com/abernier/userscripts
 // @supportURL   https://github.com/abernier/userscripts/issues
 // @downloadURL  https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js
@@ -13,6 +13,9 @@
 // @match        https://www.linkedin.com/*
 // @run-at       document-start
 // @grant        GM_addStyle
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (() => {
@@ -24,8 +27,13 @@
   //   balanced    – light + social-proof reposts, "Add to your feed", News, puzzles. (default)
   //   aggressive  – hide ALL posts & modules listed. Messaging bubble kept.
   //   nuclear     – aggressive + removes the bottom-right Messaging bubble.
-  //   custom      – ignore presets, use the CUSTOM object below.
-  const PRESET = "balanced"; // "light" | "balanced" | "aggressive" | "nuclear" | "custom"
+  //   custom      – ignore presets, use the stored custom object (see menu).
+  // The active preset lives in Tampermonkey storage, NOT in this file: pick it
+  // from the Tampermonkey toolbar menu while on linkedin.com. Edits to this
+  // file would be wiped by the next @updateURL auto-update.
+  const PRESET_NAMES = ["light", "balanced", "aggressive", "nuclear", "custom"];
+  const storedPreset = GM_getValue("preset", "balanced");
+  const PRESET = PRESET_NAMES.includes(storedPreset) ? storedPreset : "balanced";
   const DEBUG = true;          // log to the console
 
   // ───────────── Reveal mode (the big anti-flicker switch) ─────────────
@@ -37,11 +45,21 @@
   const REVEAL_MODE = true;
   const REVEAL_FAILOPEN_MS = 1500;
 
-  const CUSTOM = {
+  const CUSTOM_DEFAULT = {
     posts:   { suggested: true, promoted: true, learning: true, socialProof: true },
     modules: { followRecos: true, puzzles: true, news: true, jobs: true, video: true, premiumUpsell: true },
     messagingBubble: false,
   };
+  // Stored custom config merged over defaults, so a partial/stale object never breaks.
+  const CUSTOM = (() => {
+    const s = GM_getValue("custom", null);
+    if (!s || typeof s !== "object") return CUSTOM_DEFAULT;
+    return {
+      posts:   { ...CUSTOM_DEFAULT.posts, ...(s.posts || {}) },
+      modules: { ...CUSTOM_DEFAULT.modules, ...(s.modules || {}) },
+      messagingBubble: !!s.messagingBubble,
+    };
+  })();
 
   const PRESETS = {
     light: {
@@ -68,6 +86,24 @@
   };
 
   const CONFIG = { ...(PRESETS[PRESET] || PRESETS.aggressive), debug: DEBUG };
+
+  // ───────────── Tampermonkey menu (visible on linkedin.com tabs) ─────────────
+  for (const name of PRESET_NAMES)
+    GM_registerMenuCommand(`${name === PRESET ? "✓" : "•"} preset: ${name}`, () => {
+      GM_setValue("preset", name);
+      location.reload();
+    });
+  GM_registerMenuCommand("⚙ configure custom (JSON)…", () => {
+    const input = prompt("not_interested — custom config (JSON):", JSON.stringify(CUSTOM));
+    if (input == null) return;
+    try {
+      GM_setValue("custom", JSON.parse(input));
+      GM_setValue("preset", "custom");
+      location.reload();
+    } catch (e) {
+      alert(`Invalid JSON: ${e.message}`);
+    }
+  });
 
   // ───────────── Post detection (exact header text) ─────────────
   const POST_RES = [
