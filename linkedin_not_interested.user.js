@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name         not_interested — a cleaner LinkedIn feed
 // @namespace    https://abernier.dev/
-// @version      1.11.1
-// @homepageURL  https://claude.ai/chat/4f8781b9-8f0f-44fd-aac5-0d25ba42b682
-// @supportURL   https://claude.ai/chat/4f8781b9-8f0f-44fd-aac5-0d25ba42b682
-// @description  Permanently hides what LinkedIn won't let you mute for good: "Suggested"/"Promoted" posts, LinkedIn Learning course cards, social-proof reposts ("X likes this"), and clutter modules (Add to your feed, puzzles, News, jobs, videos, Premium upsells). LinkedIn's built-in "I don't want to see this" action (see https://www.linkedin.com/help/linkedin/answer/a523209) doesn't stick — this keeps the feed clean as you scroll. Works with English and French UI locales.
+// @version      1.12.0
+// @homepageURL  https://github.com/abernier/userscripts
+// @supportURL   https://github.com/abernier/userscripts/issues
+// @downloadURL  https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js
+// @updateURL    https://raw.githubusercontent.com/abernier/userscripts/main/linkedin_not_interested.user.js
+// @description  Permanently hides what LinkedIn won't let you mute for good: "Suggested"/"Promoted"/"From your activity" posts, LinkedIn Learning course cards, social-proof reposts ("X likes this"), and clutter modules (Add to your feed, puzzles, News, jobs, videos, Premium upsells). LinkedIn's built-in "I don't want to see this" action (see https://www.linkedin.com/help/linkedin/answer/a523209) doesn't stick — this keeps the feed clean as you scroll. Works with English and French UI locales.
 // @author       abernier
 // @license      MIT
 // @match        https://www.linkedin.com/*
@@ -68,7 +70,7 @@
 
   // ───────────── Post detection (exact header text) ─────────────
   const POST_RES = [
-    ["suggested", /^\s*(suggested|suggéré(e)?(\s+pour\s+vous)?|recommandé(e)?\s+pour\s+vous|recommended\s+for\s+you)\s*$/i],
+    ["suggested", /^\s*(suggested|suggéré(e)?(\s+pour\s+vous)?|recommandé(e)?\s+pour\s+vous|recommended\s+for\s+you|from your activity|based on your activity|d['’]après votre activité|basé sur votre activité|de votre activité|selon votre activité)\s*$/i],
     ["promoted", /^\s*(promoted|sponsorisé(e)?|sponsored)\s*$/i],
     ["learning", /^((popular|trending|recommended|featured|new|top)\s+courses?\b.*|cours? (populaire|recommandé|tendance)\b.*|.*\blinkedin learning)\s*$/i],
   ];
